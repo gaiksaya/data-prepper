@@ -51,6 +51,7 @@ pipeline {
             }
             steps {
                 script {
+                    def assets_url = null
                     if (!isNullOrEmpty("$assets_url")) {
                         withCredentials([usernamePassword(credentialsId: 'jenkins-github-bot-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
                             String assets = sh(
