@@ -74,10 +74,9 @@ pipeline {
                         RELEASE_MAJOR_TAG = yamlFile.release_major_tag
                         RELEASE_LATEST_TAG = yamlFile.release_latest_tag
 
-                        // if (VERSION == '' || DATA_PREPPER_BUILD_NUMBER == '' || RELEASE_MAJOR_TAG == '' || RELEASE_LATEST_TAG == '') {
-                            if(isNullOrEmpty(VERSION) || isNullOrEmpty(DATA_PREPPER_BUILD_NUMBER) || isNullOrEmpty(RELEASE_MAJOR_TAG) || isNullOrEmpty(RELEASE_LATEST_TAG)){
+                        if(isNullOrEmpty(VERSION) || isNullOrEmpty(DATA_PREPPER_BUILD_NUMBER) || isNullOrEmpty(RELEASE_MAJOR_TAG) || isNullOrEmpty(RELEASE_LATEST_TAG)){
                             currentBuild.result = 'ABORTED'
-                            error('Parameters cannot be empty. Please check values of version, build_number, release_major_tag, release_latest_tag: true in release-description.yaml')
+                            error('Value of version, build_number, release_major_tag, release_latest_tag cannot be null or empty. Please check release-description.yaml')
                         }
                      } else {
                         currentBuild.result = 'ABORTED'
