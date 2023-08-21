@@ -32,11 +32,11 @@ pipeline {
         )
     }
     environment {
-        DATA_PREPPER_ARTIFACT_STAGING_SITE = credentials('jenkins-data-prepper-artifact-staging-site')
-        DATA_PREPPER_STAGING_CONTAINER_REPOSITORY = credentials('jenkins-data-prepper-staging-container-repository')
-        ARTIFACT_PROMOTION_ROLE_NAME = credentials('jenkins-artifact-promotion-role')
-        AWS_ACCOUNT_ARTIFACT = credentials('jenkins-aws-production-account')
-        ARTIFACT_PRODUCTION_BUCKET_NAME = credentials('jenkins-artifact-production-bucket-name')
+        // DATA_PREPPER_ARTIFACT_STAGING_SITE = credentials('jenkins-data-prepper-artifact-staging-site')
+        // DATA_PREPPER_STAGING_CONTAINER_REPOSITORY = credentials('jenkins-data-prepper-staging-container-repository')
+        // ARTIFACT_PROMOTION_ROLE_NAME = credentials('jenkins-artifact-promotion-role')
+        // AWS_ACCOUNT_ARTIFACT = credentials('jenkins-aws-production-account')
+        // ARTIFACT_PRODUCTION_BUCKET_NAME = credentials('jenkins-artifact-production-bucket-name')
         TAG = "$ref"
     }
     stages {
@@ -86,7 +86,7 @@ pipeline {
                 }
             }
         }
-        stage('Promote Archives') {
+        stage('See all params'){
             agent {
                 docker {
                     label 'Jenkins-Agent-AL2-X64-C54xlarge-Docker-Host'
@@ -95,180 +95,208 @@ pipeline {
                     registryUrl 'https://public.ecr.aws/'
                     alwaysPull true
                 }
-            }
+            }      
             stages {
-                stage('Download Archives') {
+                stage('See yamls'){
                     steps {
                         script {
-                            archivePath = "${DATA_PREPPER_ARTIFACT_STAGING_SITE}/${VERSION}/${DATA_PREPPER_BUILD_NUMBER}/archive"
-
-                            dir('archive') {
-                                sh "curl -sSL ${archivePath}/opensearch-data-prepper-${VERSION}-linux-x64.tar.gz -o opensearch-data-prepper-${VERSION}-linux-x64.tar.gz"
-                                sh "curl -sSL ${archivePath}/opensearch-data-prepper-jdk-${VERSION}-linux-x64.tar.gz -o opensearch-data-prepper-jdk-${VERSION}-linux-x64.tar.gz"
-                            }
+                            sh """
+                            Here are yaml values:
+                            VERSION = $VERSION
+                            DATA_PREPPER_BUILD_NUMBER = $DATA_PREPPER_BUILD_NUMBER
+                            RELEASE_MAJOR_TAG = $RELEASE_MAJOR_TAG
+                            RELEASE_LATEST_TAG = $RELEASE_LATEST_TAG
+                            TAG = $TAG
+                            """
                         }
                     }
                 }
-                stage('Sign and Release Archives') {
-                    steps {
-                        script {
-                            publishToArtifactsProdBucket(
-                                assumedRoleName: 'data-prepper-artifacts-upload-role',
-                                source: "${env.WORKSPACE}/archive/",
-                                destination: "data-prepper/${VERSION}/",
-                                signingPlatform: 'linux',
-                                sigType: '.sig',
-                                sigOverwrite: true
-                            )
-                        }
-                    }
-                }
-            }
-            post() {
-                always {
-                    script {
-                        postCleanup()
-                    }
-                }
-            }
+            } 
         }
-        stage('Promote Docker') {
-            agent {
-                docker {
-                    label 'Jenkins-Agent-AL2-X64-C54xlarge-Docker-Host'
-                    image 'docker/library/alpine:3'
-                    registryUrl 'https://public.ecr.aws/'
-                    alwaysPull true
-                }
-            }
-            stages {
-                stage('Copy Docker Image to DockerHub') {
-                    steps {
-                        script {
-                            def dockerCopyHub =
-                                build job: 'docker-copy',
-                                parameters: [
-                                    string(name: 'SOURCE_IMAGE_REGISTRY', value: "${DATA_PREPPER_STAGING_CONTAINER_REPOSITORY}"),
-                                    string(name: 'SOURCE_IMAGE', value: "data-prepper:${VERSION}-${DATA_PREPPER_BUILD_NUMBER}"),
-                                    string(name: 'DESTINATION_IMAGE_REGISTRY', value: 'opensearchproject'),
-                                    string(name: 'DESTINATION_IMAGE', value: "data-prepper:${VERSION}")
-                                ]
+        // stage('Promote Archives') {
+        //     agent {
+        //         docker {
+        //             label 'Jenkins-Agent-AL2-X64-C54xlarge-Docker-Host'
+        //             image 'opensearchstaging/ci-runner:ci-runner-centos7-opensearch-build-v3'
+        //             args '-e JAVA_HOME=/opt/java/openjdk-11'
+        //             registryUrl 'https://public.ecr.aws/'
+        //             alwaysPull true
+        //         }
+        //     }
+        //     stages {
+        //         stage('Download Archives') {
+        //             steps {
+        //                 script {
+        //                     archivePath = "${DATA_PREPPER_ARTIFACT_STAGING_SITE}/${VERSION}/${DATA_PREPPER_BUILD_NUMBER}/archive"
 
-                            if (RELEASE_MAJOR_TAG) {
-                                def majorVersion = VERSION.tokenize('.')[0].trim()
-                                def dockerCopyHubMajor =
-                                    build job: 'docker-copy',
-                                    parameters: [
-                                        string(name: 'SOURCE_IMAGE_REGISTRY', value: "${DATA_PREPPER_STAGING_CONTAINER_REPOSITORY}"),
-                                        string(name: 'SOURCE_IMAGE', value: "data-prepper:${VERSION}-${DATA_PREPPER_BUILD_NUMBER}"),
-                                        string(name: 'DESTINATION_IMAGE_REGISTRY', value: 'opensearchproject'),
-                                        string(name: 'DESTINATION_IMAGE', value: "data-prepper:${majorVersion}")
-                                    ]
-                            }
+        //                     dir('archive') {
+        //                         sh "curl -sSL ${archivePath}/opensearch-data-prepper-${VERSION}-linux-x64.tar.gz -o opensearch-data-prepper-${VERSION}-linux-x64.tar.gz"
+        //                         sh "curl -sSL ${archivePath}/opensearch-data-prepper-jdk-${VERSION}-linux-x64.tar.gz -o opensearch-data-prepper-jdk-${VERSION}-linux-x64.tar.gz"
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //         stage('Sign and Release Archives') {
+        //             steps {
+        //                 script {
+        //                     sh "ls -l ${env.WORKSPACE}/archive/"
+        //                     // publishToArtifactsProdBucket(
+        //                     //     assumedRoleName: 'data-prepper-artifacts-upload-role',
+        //                     //     source: "${env.WORKSPACE}/archive/",
+        //                     //     destination: "data-prepper/${VERSION}/",
+        //                     //     signingPlatform: 'linux',
+        //                     //     sigType: '.sig',
+        //                     //     sigOverwrite: true
+        //                     // )
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     post() {
+        //         always {
+        //             script {
+        //                 postCleanup()
+        //             }
+        //         }
+        //     }
+        // }
+        // stage('Promote Docker') {
+        //     agent {
+        //         docker {
+        //             label 'Jenkins-Agent-AL2-X64-C54xlarge-Docker-Host'
+        //             image 'docker/library/alpine:3'
+        //             registryUrl 'https://public.ecr.aws/'
+        //             alwaysPull true
+        //         }
+        //     }
+        //     stages {
+                // stage('Copy Docker Image to DockerHub') {
+                //     steps {
+                //         script {
+                //             def dockerCopyHub =
+                //                 build job: 'docker-copy',
+                //                 parameters: [
+                //                     string(name: 'SOURCE_IMAGE_REGISTRY', value: "${DATA_PREPPER_STAGING_CONTAINER_REPOSITORY}"),
+                //                     string(name: 'SOURCE_IMAGE', value: "data-prepper:${VERSION}-${DATA_PREPPER_BUILD_NUMBER}"),
+                //                     string(name: 'DESTINATION_IMAGE_REGISTRY', value: 'opensearchproject'),
+                //                     string(name: 'DESTINATION_IMAGE', value: "data-prepper:${VERSION}")
+                //                 ]
 
-                            if (RELEASE_LATEST_TAG) {
-                                def dockerCopyHubLatest =
-                                    build job: 'docker-copy',
-                                    parameters: [
-                                        string(name: 'SOURCE_IMAGE_REGISTRY', value: "${DATA_PREPPER_STAGING_CONTAINER_REPOSITORY}"),
-                                        string(name: 'SOURCE_IMAGE', value: "data-prepper:${VERSION}-${DATA_PREPPER_BUILD_NUMBER}"),
-                                        string(name: 'DESTINATION_IMAGE_REGISTRY', value: 'opensearchproject'),
-                                        string(name: 'DESTINATION_IMAGE', value: 'data-prepper:latest')
-                                    ]
-                            }
-                        }
-                    }
-                }
-                stage('Copy Docker Image to ECR') {
-                    steps {
-                        script {
-                            def dockerCopyECR =
-                                build job: 'docker-copy',
-                                parameters: [
-                                    string(name: 'SOURCE_IMAGE_REGISTRY', value: "${DATA_PREPPER_STAGING_CONTAINER_REPOSITORY}"),
-                                    string(name: 'SOURCE_IMAGE', value: "data-prepper:${VERSION}-${DATA_PREPPER_BUILD_NUMBER}"),
-                                    string(name: 'DESTINATION_IMAGE_REGISTRY', value: 'public.ecr.aws/opensearchproject'),
-                                    string(name: 'DESTINATION_IMAGE', value: "data-prepper:${VERSION}")
-                                ]
+                //             if (RELEASE_MAJOR_TAG) {
+                //                 def majorVersion = VERSION.tokenize('.')[0].trim()
+                //                 def dockerCopyHubMajor =
+                //                     build job: 'docker-copy',
+                //                     parameters: [
+                //                         string(name: 'SOURCE_IMAGE_REGISTRY', value: "${DATA_PREPPER_STAGING_CONTAINER_REPOSITORY}"),
+                //                         string(name: 'SOURCE_IMAGE', value: "data-prepper:${VERSION}-${DATA_PREPPER_BUILD_NUMBER}"),
+                //                         string(name: 'DESTINATION_IMAGE_REGISTRY', value: 'opensearchproject'),
+                //                         string(name: 'DESTINATION_IMAGE', value: "data-prepper:${majorVersion}")
+                //                     ]
+                //             }
 
-                            if (RELEASE_MAJOR_TAG) {
-                                def majorVersion = VERSION.tokenize('.')[0].trim()
-                                def dockerCopyECRMajor =
-                                    build job: 'docker-copy',
-                                    parameters: [
-                                        string(name: 'SOURCE_IMAGE_REGISTRY', value: "${DATA_PREPPER_STAGING_CONTAINER_REPOSITORY}"),
-                                        string(name: 'SOURCE_IMAGE', value: "data-prepper:${VERSION}-${DATA_PREPPER_BUILD_NUMBER}"),
-                                        string(name: 'DESTINATION_IMAGE_REGISTRY', value: 'public.ecr.aws/opensearchproject'),
-                                        string(name: 'DESTINATION_IMAGE', value: "data-prepper:${majorVersion}")
-                                    ]
-                            }
+                //             if (RELEASE_LATEST_TAG) {
+                //                 def dockerCopyHubLatest =
+                //                     build job: 'docker-copy',
+                //                     parameters: [
+                //                         string(name: 'SOURCE_IMAGE_REGISTRY', value: "${DATA_PREPPER_STAGING_CONTAINER_REPOSITORY}"),
+                //                         string(name: 'SOURCE_IMAGE', value: "data-prepper:${VERSION}-${DATA_PREPPER_BUILD_NUMBER}"),
+                //                         string(name: 'DESTINATION_IMAGE_REGISTRY', value: 'opensearchproject'),
+                //                         string(name: 'DESTINATION_IMAGE', value: 'data-prepper:latest')
+                //                     ]
+                //             }
+                //         }
+                //     }
+                // }
+                // stage('Copy Docker Image to ECR') {
+                //     steps {
+                //         script {
+                //             def dockerCopyECR =
+                //                 build job: 'docker-copy',
+                //                 parameters: [
+                //                     string(name: 'SOURCE_IMAGE_REGISTRY', value: "${DATA_PREPPER_STAGING_CONTAINER_REPOSITORY}"),
+                //                     string(name: 'SOURCE_IMAGE', value: "data-prepper:${VERSION}-${DATA_PREPPER_BUILD_NUMBER}"),
+                //                     string(name: 'DESTINATION_IMAGE_REGISTRY', value: 'public.ecr.aws/opensearchproject'),
+                //                     string(name: 'DESTINATION_IMAGE', value: "data-prepper:${VERSION}")
+                //                 ]
 
-                            if (RELEASE_LATEST_TAG) {
-                                def dockerCopyECRLatest =
-                                    build job: 'docker-copy',
-                                    parameters: [
-                                        string(name: 'SOURCE_IMAGE_REGISTRY', value: "${DATA_PREPPER_STAGING_CONTAINER_REPOSITORY}"),
-                                        string(name: 'SOURCE_IMAGE', value: "data-prepper:${VERSION}-${DATA_PREPPER_BUILD_NUMBER}"),
-                                        string(name: 'DESTINATION_IMAGE_REGISTRY', value: 'public.ecr.aws/opensearchproject'),
-                                        string(name: 'DESTINATION_IMAGE', value: 'data-prepper:latest')
-                                    ]
-                            }
-                        }
-                    }
-                }
-            }
-            post() {
-                always {
-                    script {
-                        postCleanup()
-                    }
-                }
-            }
-        }
-        stage('Promote Maven') {
-            agent {
-                docker {
-                    label 'Jenkins-Agent-AL2-X64-C54xlarge-Docker-Host'
-                    image 'opensearchstaging/ci-runner:ci-runner-centos7-opensearch-build-v3'
-                    args '-e JAVA_HOME=/opt/java/openjdk-11'
-                    registryUrl 'https://public.ecr.aws/'
-                    alwaysPull true
-                }
-            }
-            stages {
-                stage('Download Maven Artifacts') {
-                    steps {
-                        script {
-                            mavenPath = "${DATA_PREPPER_ARTIFACT_STAGING_SITE}/${VERSION}/${DATA_PREPPER_BUILD_NUMBER}/maven"
-                            group = 'org/opensearch/dataprepper'
-                            artifacts = ['data-prepper-api']
-                            fileTypes = ['-javadoc.jar', '.jar', '.pom', '-sources.jar', '.module']
-                            checksums = ['', '.md5', '.sha1', '.sha256', '.sha512']
+                //             if (RELEASE_MAJOR_TAG) {
+                //                 def majorVersion = VERSION.tokenize('.')[0].trim()
+                //                 def dockerCopyECRMajor =
+                //                     build job: 'docker-copy',
+                //                     parameters: [
+                //                         string(name: 'SOURCE_IMAGE_REGISTRY', value: "${DATA_PREPPER_STAGING_CONTAINER_REPOSITORY}"),
+                //                         string(name: 'SOURCE_IMAGE', value: "data-prepper:${VERSION}-${DATA_PREPPER_BUILD_NUMBER}"),
+                //                         string(name: 'DESTINATION_IMAGE_REGISTRY', value: 'public.ecr.aws/opensearchproject'),
+                //                         string(name: 'DESTINATION_IMAGE', value: "data-prepper:${majorVersion}")
+                //                     ]
+                //             }
 
-                            downloadArtifacts()
-                        }
-                    }
-                }
-                stage('Publish To Maven') {
-                    steps {
-                        script {
-                            publishToMaven(
-                                signingArtifactsPath: "$mavenPath",
-                                mavenArtifactsPath: "$mavenPath",
-                                autoPublish: true
-                            )
-                        }
-                    }
-                }
-            }
-            post() {
-                always {
-                    script {
-                        postCleanup()
-                    }
-                }
-            }
-        }
+                //             if (RELEASE_LATEST_TAG) {
+                //                 def dockerCopyECRLatest =
+                //                     build job: 'docker-copy',
+                //                     parameters: [
+                //                         string(name: 'SOURCE_IMAGE_REGISTRY', value: "${DATA_PREPPER_STAGING_CONTAINER_REPOSITORY}"),
+                //                         string(name: 'SOURCE_IMAGE', value: "data-prepper:${VERSION}-${DATA_PREPPER_BUILD_NUMBER}"),
+                //                         string(name: 'DESTINATION_IMAGE_REGISTRY', value: 'public.ecr.aws/opensearchproject'),
+                //                         string(name: 'DESTINATION_IMAGE', value: 'data-prepper:latest')
+                //                     ]
+                //             }
+                //         }
+                //     }
+                // }
+            // }
+            // post() {
+            //     always {
+            //         script {
+            //             postCleanup()
+            //         }
+            //     }
+            // }
+        // }
+        // stage('Promote Maven') {
+        //     agent {
+        //         docker {
+        //             label 'Jenkins-Agent-AL2-X64-C54xlarge-Docker-Host'
+        //             image 'opensearchstaging/ci-runner:ci-runner-centos7-opensearch-build-v3'
+        //             args '-e JAVA_HOME=/opt/java/openjdk-11'
+        //             registryUrl 'https://public.ecr.aws/'
+        //             alwaysPull true
+        //         }
+        //     }
+        //     stages {
+        //         stage('Download Maven Artifacts') {
+        //             steps {
+        //                 script {
+        //                     mavenPath = "${DATA_PREPPER_ARTIFACT_STAGING_SITE}/${VERSION}/${DATA_PREPPER_BUILD_NUMBER}/maven"
+        //                     group = 'org/opensearch/dataprepper'
+        //                     artifacts = ['data-prepper-api']
+        //                     fileTypes = ['-javadoc.jar', '.jar', '.pom', '-sources.jar', '.module']
+        //                     checksums = ['', '.md5', '.sha1', '.sha256', '.sha512']
+
+        //                     downloadArtifacts()
+        //                 }
+        //             }
+        //         }
+        //         stage('Publish To Maven') {
+        //             steps {
+        //                 script {
+        //                     publishToMaven(
+        //                         signingArtifactsPath: "$mavenPath",
+        //                         mavenArtifactsPath: "$mavenPath",
+        //                         autoPublish: true
+        //                     )
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     post() {
+        //         always {
+        //             script {
+        //                 postCleanup()
+        //             }
+        //         }
+        //     }
+        // }
     }
     post {
         success {
