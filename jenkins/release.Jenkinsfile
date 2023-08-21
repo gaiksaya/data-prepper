@@ -327,5 +327,5 @@ def downloadArtifacts() {
 }
 
 def isNullOrEmpty(str) {
-    return (str == null || str.allWhitespace || str.isEmpty()) 
+    return (str == null || str == '') 
     }
