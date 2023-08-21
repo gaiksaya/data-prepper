@@ -326,6 +326,6 @@ def downloadArtifacts() {
     }
 }
 
-def isNullOrEmpty(String str) { 
+def isNullOrEmpty(str) {
     return (str == null || str.allWhitespace || str.isEmpty()) 
     }
