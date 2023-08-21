@@ -31,13 +31,13 @@ pipeline {
             regexpFilterExpression: ('^true created$')
         )
     }
-    environment {
-        // DATA_PREPPER_ARTIFACT_STAGING_SITE = credentials('jenkins-data-prepper-artifact-staging-site')
-        // DATA_PREPPER_STAGING_CONTAINER_REPOSITORY = credentials('jenkins-data-prepper-staging-container-repository')
-        // ARTIFACT_PROMOTION_ROLE_NAME = credentials('jenkins-artifact-promotion-role')
-        // AWS_ACCOUNT_ARTIFACT = credentials('jenkins-aws-production-account')
-        // ARTIFACT_PRODUCTION_BUCKET_NAME = credentials('jenkins-artifact-production-bucket-name')
-    }
+    // environment {
+    //     // DATA_PREPPER_ARTIFACT_STAGING_SITE = credentials('jenkins-data-prepper-artifact-staging-site')
+    //     // DATA_PREPPER_STAGING_CONTAINER_REPOSITORY = credentials('jenkins-data-prepper-staging-container-repository')
+    //     // ARTIFACT_PROMOTION_ROLE_NAME = credentials('jenkins-artifact-promotion-role')
+    //     // AWS_ACCOUNT_ARTIFACT = credentials('jenkins-aws-production-account')
+    //     // ARTIFACT_PRODUCTION_BUCKET_NAME = credentials('jenkins-artifact-production-bucket-name')
+    // }
     stages {
         stage('Get release paramters') {
             agent {
