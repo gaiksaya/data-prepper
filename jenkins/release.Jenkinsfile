@@ -52,7 +52,7 @@ pipeline {
             }
             steps {
                 script {
-                    if (isNullOrEmpty("$assets_url")) {
+                    if ("$assets_url" != '') {
                         withCredentials([usernamePassword(credentialsId: 'jenkins-github-bot-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
                             String assets = sh(
                                 script: "curl -H 'Accept: application/vnd.github+json' -H 'Authorization: Bearer ${GITHUB_TOKEN}' ${assets_url}",
