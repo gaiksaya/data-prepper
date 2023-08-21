@@ -51,8 +51,7 @@ pipeline {
             }
             steps {
                 script {
-                    def assets_url = null
-                    if (!isNullOrEmpty("$assets_url")) {
+                    if ("$assets_url" != '') {
                         withCredentials([usernamePassword(credentialsId: 'jenkins-github-bot-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
                             String assets = sh(
                                 script: "curl -H 'Accept: application/vnd.github+json' -H 'Authorization: Bearer ${GITHUB_TOKEN}' ${assets_url}",
@@ -70,7 +69,6 @@ pipeline {
                             sh "curl -J -L -H 'Accept: application/octet-stream' -H 'Authorization: Bearer ${GITHUB_TOKEN}' ${assetUrl} -o ${WORKSPACE}/release-description.yaml"
                         }
                         def yamlFile = readYaml(file: "${WORKSPACE}/release-description.yaml")
-
                         VERSION = yamlFile.version
                         DATA_PREPPER_BUILD_NUMBER = yamlFile.build_number
                         RELEASE_MAJOR_TAG = yamlFile.release_major_tag
