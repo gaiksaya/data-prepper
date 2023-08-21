@@ -75,7 +75,7 @@ pipeline {
                         RELEASE_MAJOR_TAG = yamlFile.release_major_tag
                         RELEASE_LATEST_TAG = yamlFile.release_latest_tag
 
-                        if (isNullOrEmpty(VERSION) || isNullOrEmpty(DATA_PREPPER_BUILD_NUMBER) || isNullOrEmpty(RELEASE_MAJOR_TAG) || isNullOrEmpty(RELEASE_LATEST_TAG)) {
+                        if (VERSION == '' || DATA_PREPPER_BUILD_NUMBER == '' || RELEASE_MAJOR_TAG == '' || RELEASE_LATEST_TAG == '') {
                             currentBuild.result = 'ABORTED'
                             error('Parameters cannot be empty. Please check values of version, build_number, release_major_tag, release_latest_tag: true in release-description.yaml')
                         }
@@ -323,5 +323,3 @@ def downloadArtifacts() {
         }
     }
 }
-
-def boolean isNullOrEmpty(String str) { return (str == null || str.allWhitespace || str.isEmpty()) }
