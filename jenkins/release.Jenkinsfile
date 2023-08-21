@@ -17,7 +17,7 @@ pipeline {
         GenericTrigger(
             genericVariables: [
                 [key: 'ref', value: ('$.release.tag_name')],
-                [key: 'repository', value: '$.repository.html_url'],
+                [key: 'tag', value: '$.release.name'],
                 [key: 'action', value: '$.action'],
                 [key: 'isDraft', value: '$.release.draft'],
                 [key: 'release_url', value: '$.release.url'],
@@ -37,7 +37,7 @@ pipeline {
         // ARTIFACT_PROMOTION_ROLE_NAME = credentials('jenkins-artifact-promotion-role')
         // AWS_ACCOUNT_ARTIFACT = credentials('jenkins-aws-production-account')
         // ARTIFACT_PRODUCTION_BUCKET_NAME = credentials('jenkins-artifact-production-bucket-name')
-        TAG = "$ref"
+        TAG = "$tag"
     }
     stages {
         stage('Get release paramters') {
@@ -300,12 +300,14 @@ pipeline {
     }
     post {
         success {
+            node('Jenkins-Agent-AL2-X64-C54xlarge-Docker-Host'){
             script {
                 if (release_url != null) {
                     withCredentials([usernamePassword(credentialsId: 'jenkins-github-bot-token', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
                         sh "curl -X PATCH -H 'Accept: application/vnd.github+json' -H 'Authorization: Bearer ${GITHUB_TOKEN}' ${release_url} -d '{\"tag_name\":\"${TAG}\",\"draft\":false,\"prerelease\":false}'"
                     }
                 }
+            }
             }
         }
     }
