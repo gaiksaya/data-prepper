@@ -106,7 +106,7 @@ pipeline {
                             DATA_PREPPER_BUILD_NUMBER = $DATA_PREPPER_BUILD_NUMBER
                             RELEASE_MAJOR_TAG = $RELEASE_MAJOR_TAG
                             RELEASE_LATEST_TAG = $RELEASE_LATEST_TAG
-                            TAG = $TAG"
+                            TAG = $tag"
                             """
                         }
                     }
