@@ -30,29 +30,29 @@ jobs:
     - name: Get Version
       run:  grep '^version=' gradle.properties >> $GITHUB_ENV
 
-      - name: Create Release Description
-        run: |
-          echo 'version: ${{ env.version }}' > release-description.yaml
-          echo 'build_number: ${{ github.run_number }}' >> release-description.yaml
-          echo 'release_major_tag: ${{ github.event.inputs.release-major-tag }}' >> release-description.yaml
+    - name: Create Release Description
+      run: |
+        echo 'version: ${{ env.version }}' > release-description.yaml
+        echo 'build_number: ${{ github.run_number }}' >> release-description.yaml
+        echo 'release_major_tag: ${{ github.event.inputs.release-major-tag }}' >> release-description.yaml
 
-      - name: Create tag
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ github.TOKEN }}
-          script: |
-            github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'refs/tags/${{ env.version }}',
-              sha: context.sha
-            })
+    - name: Create tag
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ github.TOKEN }}
+        script: |
+          github.rest.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'refs/tags/${{ env.version }}',
+            sha: context.sha
+          })
 
-      - name: Draft release
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: true
-          name: '${{ env.version }}'
-          tag_name: 'refs/tags/${{ env.version }}'
-          files: |
-            release-description.yaml
+    - name: Draft release
+      uses: softprops/action-gh-release@v1
+      with:
+        draft: true
+        name: '${{ env.version }}'
+        tag_name: 'refs/tags/${{ env.version }}'
+        files: |
+          release-description.yaml
