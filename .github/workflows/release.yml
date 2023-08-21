@@ -29,8 +29,6 @@ jobs:
         java-version: 11
     - name: Checkout Data Prepper
       uses: actions/checkout@v2
-    - name: Check inputs
-      run : 
     - name: Get Version
       run:  grep '^version=' gradle.properties >> $GITHUB_ENV
 
